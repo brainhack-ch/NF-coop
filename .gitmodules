@@ -1,0 +1,3 @@
+[submodule "deps/pycnbi"]
+	path = deps/pycnbi
+	url = https://github.com/dbdq/pycnbi.git
