@@ -1,5 +1,5 @@
 import subprocess, threading, Queue
-from os import O_NONBLOCK, read
+import os
 import sys
 
 SIGNAL_PROCESSING_SCRIPT_LOCATION = "../signal-processing/main.py"
@@ -22,11 +22,23 @@ class SignalProcessingWrapper:
         # writes to stdout
 
         ownLocation = sys.path[0] + '/'
-        self.subprocess = subprocess.Popen(["python", ownLocation + SIGNAL_PROCESSING_SCRIPT_LOCATION],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            bufsize=-1,
-            universal_newlines=False)
+        path = ownLocation + SIGNAL_PROCESSING_SCRIPT_LOCATION
+
+        print('[*] Starting signal processing subprocess at: ' + path)
+
+        if not os.path.isfile(path):
+            print('[!] Cannot find subprocess for signal processing')
+            return
+
+        try:
+            self.subprocess = subprocess.Popen(["python", path],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                bufsize=-1,
+                universal_newlines=False)
+        except:
+            print('[!] Failed to initialise subprocess for signal processing')
+            return
 
         # Spawn listening loop as a thread for process response
         output_thread = threading.Thread(target=self.recv_thread)
@@ -55,4 +67,6 @@ class SignalProcessingWrapper:
         self.subprocess.stdout.close()
 
     def parse_subprocess_line(self, line):
-        return line
+        # Assuming format is:
+        # playerId,val,val,val,val
+        return line.split(',')
