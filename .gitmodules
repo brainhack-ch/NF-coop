@@ -1,3 +1,4 @@
-[submodule "deps/pycnbi"]
-	path = deps/pycnbi
-	url = https://github.com/dbdq/pycnbi.git
+
+[submodule "deps/neurodecode"]
+	path = deps/neurodecode
+	url = https://github.com/dbdq/neurodecode.git
