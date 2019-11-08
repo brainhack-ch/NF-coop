@@ -1,5 +1,5 @@
-from signal-processing-wrapper import SignalProcessingWrapper
-from redis-client import RedisClient
+from signalprocessingwrapper import SignalProcessingWrapper
+from redisclient import RedisClient
 
 def main():
     redisClient = RedisClient()
