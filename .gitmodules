@@ -1,0 +1,4 @@
+
+[submodule "deps/neurodecode"]
+	path = deps/neurodecode
+	url = https://github.com/dbdq/neurodecode.git
