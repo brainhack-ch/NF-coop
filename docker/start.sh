@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker run -d redis -p 6379:6379
+docker run -p 6379:6379 -d redis
