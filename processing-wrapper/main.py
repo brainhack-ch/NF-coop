@@ -1,14 +1,20 @@
+#!/bin/local/python
+
 from signalprocessingwrapper import SignalProcessingWrapper
 from redisclient import RedisClient
 
 import signal
 import sys
+import time
+
+do_exit = False
 
 def signal_handler(sig, frame):
-    print('You pressed Ctrl+C!')
-    sys.exit(0)
+    do_exit = True
 
 def main():
+    global do_exit
+
     redisClient = RedisClient()
     signalProcessor = SignalProcessingWrapper(redisClient)
 
@@ -22,12 +28,14 @@ def main():
     signalProcessor.spawn_processing_calibration()
 
     # Run underlying signal processing
-    signalProcessor.spawn_processing()
+    try:
+        signalProcessor.spawn_processing()
+        while signalProcessor.alive():
+            time.sleep(1)
+    except KeyboardInterrupt:
+        pass
 
-    pass
-
-def setup_data_streaming(ip, port):
-    pass
+    redisClient.shutdown()
 
 if __name__ == "__main__":
     main()
