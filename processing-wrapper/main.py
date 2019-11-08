@@ -30,7 +30,7 @@ def main():
     # Run underlying signal processing
     try:
         signalProcessor.spawn_processing()
-        while signalProcessor.alive():
+        while signalProcessor.alive() and not do_exit:
             time.sleep(1)
     except KeyboardInterrupt:
         pass

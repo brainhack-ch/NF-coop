@@ -3,7 +3,6 @@ import redis
 REDIS_HOST = "localhost"
 REDIS_PORT = 6379
 
-BUFFER_TIMEOUT = 150
 QUEUE_NAME = 'input'
 
 # Utility functions around pushing data into Redis
@@ -68,11 +67,8 @@ class RedisClient:
         self.next_buffer[index] = datapoint
 
         if self.buffer_filled():
-            print('[*] Pushing buffer: ' + self.stringify_buffer())
             self.connection.rpush(QUEUE_NAME, self.stringify_buffer())
             self.reset_buffer()
-        else:
-            print('[*] Holding buffer')
 
     # Called by signal processing wrapper on stdout messages
     def on_new_data(self, stream_update):
