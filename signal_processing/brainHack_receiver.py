@@ -28,8 +28,14 @@ def process_stream(sr, EEG_CH_NAMES, unused_channels, info, filter_values,
         #corrmap(icas, template=(0,1), label="horizontal",
                 show=False, plot=False, threshold=.8, ch_type='eeg')
         #exclude = ica.labels_['blinks'] + ica.labels_['horizontal']
+        if len(ica.labels_['blinks']) >= 1:
+            print('blink')
+        if len(ica.labels_['horizontal']) >= 1:
+            print('horizontal')
         #ica.apply(raw_array, exclude=exclude)
         '''
+        #take only the last second of data
+        raw_array.crop(4,)
         # compute psd
         psds,freqs = mne.time_frequency.psd_welch(raw_array,fmin=8,fmax=12)
         #psds = 10. * np.log10(psds)
@@ -42,9 +48,12 @@ def do_resting_state_processing(sr, duration,
     alpha_vals = []
     timeout = time.time() + 60 * duration
     while time.time() <= timeout:
+        start = time.time()
         power = process_stream(sr, EEG_CH_NAMES, unused_channels, info,
                               filter_values, reference_ica, band)
         alpha_vals.append(power)
+        stop = time.time()
+        print(stop - start)
     alpha_mean= np.mean(alpha_vals)
     alpha_std = np.std(alpha_vals)
     return(alpha_mean, alpha_std)
@@ -72,8 +81,10 @@ def client():
     amp_name = None
 
     # Connect to the EEG
-    sr = StreamReceiver(window_size=2, buffer_size=100,
+    sr = StreamReceiver(window_size=5, buffer_size=100,
                         amp_name=amp_name, eeg_only=True)
+    # Wait to have enought data in the buffer
+    time.sleep(5)
     sfreq = sr.get_sample_rate()
     watchdog = qc.Timer()
     tm = qc.Timer(autoreset=True)
