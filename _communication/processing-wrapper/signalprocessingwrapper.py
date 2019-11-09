@@ -31,11 +31,14 @@ class SignalProcessingWrapper:
         self.client_thread.start()
 
     def notify_state_requested(self, newState):
-        if not isinstance(newState, str):
+        if not isinstance(newState, str) and newState is not None:
             print('[!] Error: Server requested a non-string state: ' + str(type(newState)))
             return
 
-        if newState.startswith('resting'):
+        if newState is None:
+            print('[*] Server event: No value, so stopping data aquisition')
+            self.stop_client()
+        elif newState.startswith('resting'):
             duration = float(newState.split('_')[1]) # This is in seconds, needs converting to minutes
             duration = duration / 60.0
 

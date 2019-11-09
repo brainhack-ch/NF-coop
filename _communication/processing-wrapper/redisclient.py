@@ -72,8 +72,12 @@ class RedisClient:
 
         while self.shutdown_requested == False:
             server_event = self.connection.get(SERVER_KEY_NAME)
+            if server_event is not None:
+                server_event = server_event.decode("utf-8")
 
-            if server_event != None and server_event != self.last_server_event:
+            print(server_event)
+
+            if server_event != self.last_server_event:
                 self.state_callback(server_event)
                 self.last_server_event = server_event
 
