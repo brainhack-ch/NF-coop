@@ -97,6 +97,7 @@
     <Compile Include="Assets\_scripts\_REDIS\TeamDev.Redis\StoreEntityTypesCache.cs" />
     <Compile Include="Assets\_scripts\_REDIS\ThrQueueRedisListen.cs" />
     <Compile Include="Assets\_scripts\_utils\_singleton.cs" />
+    <None Include="Assets\_models\Plant\Standard-2Sided.shader" />
     <None Include="Assets\_scripts\_REDIS\TeamDev.Redis\ClassDiagram1.cd" />
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>F:/VR_Users/BrainHack/BrainHack_nf-coop/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
