@@ -15,7 +15,10 @@ def signal_handler(sig, frame):
 def main():
     global do_exit
 
-    redisClient = RedisClient()
+    # Get headset name - initially as argv[1]
+    headsetname = 'unknown1'
+
+    redisClient = RedisClient(headsetname)
     signalProcessor = SignalProcessingWrapper(redisClient)
 
     # Add handler for SIGINT
@@ -24,15 +27,15 @@ def main():
     if redisClient.setup_connection() == -1:
         sys.exit(-1)
 
-    # Undertake any calibration
-    signalProcessor.spawn_processing_calibration()
+    redisClient.setup_callback(signalProcessor.notify_state_requested)
 
     # Run underlying signal processing
     try:
-        signalProcessor.spawn_processing()
+        signalProcessor.spawn_client(headsetname)
         while signalProcessor.alive() and not do_exit:
             time.sleep(1)
     except KeyboardInterrupt:
+        print('KEYBOARD INTERRUPT')
         pass
 
     redisClient.shutdown()

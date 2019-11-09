@@ -51,7 +51,7 @@ def do_resting_state_processing(sr, duration,
 
 def do_gaming_processing(sr, rs_mean, rs_std,
                          EEG_CH_NAMES, unused_channels, info, filter_values,
-                         reference_ica, band):
+                         reference_ica, band, gaming_callback):
     alpha_vals = []
     while True:
         power = process_stream(sr, EEG_CH_NAMES, unused_channels, info,
@@ -62,14 +62,24 @@ def do_gaming_processing(sr, rs_mean, rs_std,
             score = 1
         elif score < -1:
             score = -1
-        print(score)
+
+        if gaming_callback is not None:
+            gaming_callback(score)
+        else:
+            print(score)
     return()
 
+paradigm = ''
 
+def switch_paradigm(value):
+    global paradigm
+    paradigm = value
 
-def client():
+def client(headsetname, resting_callback, gaming_callback):
+    global paradigm
+
     # Connect to redis
-    amp_name = None
+    amp_name = headsetname
 
     # Connect to the EEG
     sr = StreamReceiver(window_size=2, buffer_size=100,
@@ -101,19 +111,20 @@ def client():
     while True:
         # Wait instruction from redis
         duration = 1
-        paradigm = 'demo'
         if paradigm == 'resting_state':
             print('resting_state')
             rs_mean, rs_std = do_resting_state_processing(sr, duration,
                                            EEG_CH_NAMES, unused_channels, info,
                                            filter_values, reference_ica, band)
             print(rs_mean, rs_std)
+            if resting_callback is not None:
+                resting_callback(True)
         elif paradigm == 'gaming':
             print('gaming')
             if rs_mean is not None and rs_std is not None:
                 do_gaming_processing(sr, rs_mean, rs_std,
                                      EEG_CH_NAMES, unused_channels, info,
-                                     filter_values, reference_ica, band)
+                                     filter_values, reference_ica, band, gaming_callback)
                 rs_mean = None
                 rs_std = None
         elif paradigm == 'demo':
@@ -125,9 +136,9 @@ def client():
             print('gaming')
             do_gaming_processing(sr, rs_mean, rs_std,
                                  EEG_CH_NAMES, unused_channels, info,
-                                 filter_values, reference_ica, band)
+                                 filter_values, reference_ica, band, gaming_callback)
             rs_mean = None
             rs_std = None
 
 if __name__ == '__main__':
-    client()
+    client(None, None, None)
