@@ -46,9 +46,9 @@ class RedisClient:
         return 0
 
     def map_demo_headset_name_to_queue(self, name):
-        if name == 'P04/01':
+        if name == 'P04':
             return 'player_0'
-        elif name == 'P04/02':
+        elif name == 'P04/01':
             return 'player_1'
         else:
             return ''
@@ -73,9 +73,9 @@ class RedisClient:
         while self.shutdown_requested == False:
             server_event = self.connection.get(SERVER_KEY_NAME)
 
-            if server_event != None and int(server_event) != self.last_server_event:
-                self.state_callback(int(server_event))
-                self.last_server_event = int(server_event)
+            if server_event != None and server_event != self.last_server_event:
+                self.state_callback(server_event)
+                self.last_server_event = server_event
 
             time.sleep(1)
 

@@ -10,6 +10,7 @@ from mne.preprocessing import (ICA, create_eog_epochs, create_ecg_epochs,
                                corrmap)
 
 paradigm = ''
+resting_duration = 1 # minutes
 
 def process_stream(sr, EEG_CH_NAMES, unused_channels, info, filter_values,
                    reference_ica, band):
@@ -82,12 +83,17 @@ def do_gaming_processing(sr, rs_mean, rs_std,
             print(score)
     return()
 
+def set_resting_state_duration(value):
+    global resting_duration
+    resting_duration = value
+
 def switch_paradigm(value):
     global paradigm
     paradigm = value
 
-def client(headsetname, resting_duration, resting_callback, gaming_callback):
+def client(headsetname, resting_callback, gaming_callback):
     global paradigm
+    global resting_duration
 
     # Connect to redis
     amp_name = headsetname
@@ -104,7 +110,6 @@ def client(headsetname, resting_duration, resting_callback, gaming_callback):
     # Processing parameters
     sfreq = 300
     filter_values=[50,100]
-    resting_state_duration = 1 # in minutes (s)
     band = [8, 12]
     EEG_CH_NAMES = [
        'TRIGGER', 'P3', 'C3', 'F3', 'Fz', 'F4', 'C4', 'P4', 'Cz', 'Pz',
@@ -157,4 +162,4 @@ if __name__ == '__main__':
     paradigm = 'demo'
 
     # Adjust headset name here
-    client('P04', 0.5, None, None)
+    client('P04', None, None)

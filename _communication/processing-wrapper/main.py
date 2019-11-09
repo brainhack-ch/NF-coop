@@ -39,15 +39,8 @@ def choose_headset():
 def main():
     global do_exit
 
-    # Setup argument parsing
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--d', type=float, default=0.5, help='Duration for resting state')
-
-    args = parser.parse_args()
-
     # Get headset name
     headsetname = choose_headset()
-    resting_duration = args.d
 
     redisClient = RedisClient(headsetname)
     signalProcessor = SignalProcessingWrapper(redisClient)
@@ -65,13 +58,13 @@ def main():
         start_time = time.time()
         last_mode = -1
 
-        signalProcessor.spawn_client(headsetname, resting_duration)
+        signalProcessor.spawn_client(headsetname)
         while signalProcessor.alive() and not do_exit:
             time.sleep(1)
 
             if DEBUG_MODE and time.time() - start_time > 5 and last_mode == -1:
                 print('[*] DEBUG MODE: Going to resting state calibration, then auto-switch to gaming')
-                signalProcessor.notify_state_requested(0)
+                signalProcessor.notify_state_requested('resting_30')
                 last_mode = 0
     except KeyboardInterrupt:
         pass
