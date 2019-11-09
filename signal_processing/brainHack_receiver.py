@@ -9,6 +9,8 @@ from neurodecode.stream_receiver.stream_receiver import StreamReceiver
 from mne.preprocessing import (ICA, create_eog_epochs, create_ecg_epochs,
                                corrmap)
 
+paradigm = ''
+
 def process_stream(sr, EEG_CH_NAMES, unused_channels, info, filter_values,
                    reference_ica, band):
         sr.acquire()  # Read data from LSL
@@ -52,8 +54,10 @@ def do_resting_state_processing(sr, duration,
 def do_gaming_processing(sr, rs_mean, rs_std,
                          EEG_CH_NAMES, unused_channels, info, filter_values,
                          reference_ica, band, gaming_callback):
+    global paradigm
+
     alpha_vals = []
-    while True:
+    while paradigm == 'gaming':
         power = process_stream(sr, EEG_CH_NAMES, unused_channels, info,
                               filter_values, reference_ica, band)
         alpha_vals.append(power)
@@ -68,8 +72,6 @@ def do_gaming_processing(sr, rs_mean, rs_std,
         else:
             print(score)
     return()
-
-paradigm = ''
 
 def switch_paradigm(value):
     global paradigm
