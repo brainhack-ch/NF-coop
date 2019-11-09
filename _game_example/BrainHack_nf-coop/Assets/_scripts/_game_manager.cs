@@ -18,10 +18,14 @@ public class _game_manager : _singleton<_game_manager>
 
     [HideInInspector]
     public GameObject GO_RedisKeyValueWritter;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject GO_RedisListenerList1;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject GO_RedisListenerList2;
+    [HideInInspector]
+    public GameObject GO_feedback_player_1; // vertical
+    [HideInInspector]
+    public GameObject GO_feedback_player_2; // horizontal
 
     string s_path_GO_levels = "_levels";
     string s_path_GO_level_x = "_level_";
@@ -45,9 +49,12 @@ public class _game_manager : _singleton<_game_manager>
         GO_text = GameObject.Find("Canvas/Text");
         GO_text.GetComponent<Text>().text = "";
 
-        GO_RedisKeyValueWritter = GameObject.Find("_REDIS_communication/RedisKeyValueWritter");
+        GO_RedisKeyValueWritter = GameObject.Find("_REDIS_communication/GO_RedisKeyValueWritter");
         GO_RedisListenerList1 = GameObject.Find("_REDIS_communication/GO_RedisListenerList1");
         GO_RedisListenerList2 = GameObject.Find("_REDIS_communication/GO_RedisListenerList2");
+
+        GO_feedback_player_1 = GameObject.Find("Canvas/GO_feedback_player_1");
+        GO_feedback_player_2 = GameObject.Find("Canvas/GO_feedback_player_2");
 
         GO_obj_level_0_0 = GameObject.Find(s_path_GO_levels + "/" + s_path_GO_level_x + "0" + "/_objects").transform.GetChild(0).gameObject;
         GO_obj_level_0_0_1 = GameObject.Find(s_path_GO_levels + "/" + s_path_GO_level_x + "0" + "/_objects").transform.GetChild(1).gameObject;
@@ -72,6 +79,9 @@ public class _game_manager : _singleton<_game_manager>
             list_GO_players.Add(GameObject.Find(s_path_GO_players + "/" + s_path_GO_player_x + i.ToString()));
             list_GO_players[i].SetActive(false);
             list_GO_players[i].GetComponent<_player_controller>().b_can_control = false;
+
+            _game_manager.Instance.GO_feedback_player_1.SetActive(false);
+            _game_manager.Instance.GO_feedback_player_2.SetActive(false);
         }
 
         _load_level_(0);
@@ -141,6 +151,13 @@ public class _game_manager : _singleton<_game_manager>
         GO_text.GetComponent<Text>().color = new Color(255, 140, 0);
     }
 
+    IEnumerator coroutine_deactivate_gameobject(GameObject GO,  float f_time)
+    {
+        yield return new WaitForSeconds(f_time);
+
+        GO.SetActive(false);
+    }
+
     public IEnumerator coroutine_level_0_advanced(int i_level)
     {
         GO_text.GetComponent<Text>().color = Color.green;
@@ -151,23 +168,30 @@ public class _game_manager : _singleton<_game_manager>
         for (int i = 0; i < GO_obj_level_0_other_props.Count; i++)
         {
             yield return new WaitForSeconds(1.0f / (1 + i / 2));
-            GO_obj_level_0_other_props[i].SetActive(false);
+
+            GO_obj_level_0_other_props[i].GetComponent<Rigidbody>().isKinematic = false;
+            GO_obj_level_0_other_props[i].GetComponent<Rigidbody>().AddForce((GO_obj_level_0_0_2.transform.up * 5 + new Vector3(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f))) * 11);
+            //GO_obj_level_0_other_props[i].GetComponent<AudioSource>().Play();
+            StartCoroutine(coroutine_deactivate_gameobject(GO_obj_level_0_other_props[i], 1));
         }
 
-        yield return new WaitForSeconds(1.0f / (1 + GO_obj_level_0_other_props.Count / 2));
+        yield return new WaitForSeconds(0.5f + 1.0f / (1 + GO_obj_level_0_other_props.Count / 2));
+        GO_obj_level_0_0.GetComponent<Rigidbody>().isKinematic = false;
+        GO_obj_level_0_0.GetComponent<Rigidbody>().AddForce((-GO_obj_level_0_0.transform.forward * 5 * 11));
+        GO_obj_level_0_0.GetComponent<AudioSource>().Play();
+        StartCoroutine(coroutine_deactivate_gameobject(GO_obj_level_0_0, 1));
         GO_obj_level_0_0.SetActive(false);
-        GO_text.GetComponent<Text>().text = "3";
-        GO_text.GetComponent<Text>().color = new Color(255, 140, 0);
         yield return new WaitForSeconds(1.0f / (1 + GO_obj_level_0_other_props.Count / 2));
-        GO_obj_level_0_0_1.SetActive(false);
-        GO_text.GetComponent<Text>().text = "2";
+        GO_obj_level_0_0_1.GetComponent<Rigidbody>().isKinematic = false;
+        GO_obj_level_0_0_1.GetComponent<Rigidbody>().AddForce((-GO_obj_level_0_0_1.transform.up * 2 * 5 * 11));
+        GO_obj_level_0_0_1.GetComponent<AudioSource>().Play();
+        StartCoroutine(coroutine_deactivate_gameobject(GO_obj_level_0_0_1, 1));
+        GO_obj_level_0_0_2.GetComponent<Rigidbody>().isKinematic = false;
+        GO_obj_level_0_0_2.GetComponent<Rigidbody>().AddForce((-GO_obj_level_0_0_2.transform.up * 2 * 5 * 11));
+        GO_obj_level_0_0_2.GetComponent<AudioSource>().Play();
+        StartCoroutine(coroutine_deactivate_gameobject(GO_obj_level_0_0_2, 1));
         GO_text.GetComponent<Text>().color = new Color(255, 140, 0);
-        yield return new WaitForSeconds(1.0f / (1 + GO_obj_level_0_other_props.Count / 2));
-        GO_obj_level_0_0_2.SetActive(false);
-        GO_text.GetComponent<Text>().text = "1";
-        GO_text.GetComponent<Text>().color = new Color(255, 140, 0);
-        yield return new WaitForSeconds(0.5f);
-        GO_text.GetComponent<Text>().text = "GO!";
+        yield return new WaitForSeconds(0.25f);
         GO_text.GetComponent<Text>().color = Color.green;
 
         for (int i = 0; i < list_GO_players.Count; i++)
@@ -195,9 +219,12 @@ public class _game_manager : _singleton<_game_manager>
         for (int i = 0; i < list_GO_players.Count; i++)
         {
             list_GO_players[i].GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
-            list_GO_players[i].GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            list_GO_players[i].GetComponent<Rigidbody>().constraints = /*RigidbodyConstraints.FreezePositionY |*/ RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             list_GO_players[i].GetComponent<_player_controller>().b_can_control = true;
             b_waiting_reaching_exit = true;
+
+            _game_manager.Instance.GO_feedback_player_1.SetActive(true);
+            _game_manager.Instance.GO_feedback_player_2.SetActive(true);
         }
 
     }
@@ -217,6 +244,9 @@ public class _game_manager : _singleton<_game_manager>
             list_GO_players[i].GetComponent<Rigidbody>().AddForce((GO_spawn_player_x.transform.position - list_GO_players[i].transform.position + new Vector3(0,8,0)) * 40);
         }
 
+        yield return new WaitForSeconds(1);
+        GO_text.GetComponent<Text>().text = "";
+
         yield return new WaitForSeconds(4);
 
         for (int i = 0; i < list_GO_players.Count; i++)
@@ -230,9 +260,12 @@ public class _game_manager : _singleton<_game_manager>
         for (int i = 0; i < list_GO_players.Count; i++)
         {
             list_GO_players[i].GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
-            list_GO_players[i].GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            list_GO_players[i].GetComponent<Rigidbody>().constraints = /*RigidbodyConstraints.FreezePositionY |*/ RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             list_GO_players[i].GetComponent<_player_controller>().b_can_control = true;
             b_waiting_reaching_exit = true;
+
+            _game_manager.Instance.GO_feedback_player_1.SetActive(true);
+            _game_manager.Instance.GO_feedback_player_2.SetActive(true);
         }
     }
 
@@ -276,7 +309,7 @@ public class _game_manager : _singleton<_game_manager>
                 // TO ADD REDIS
                 if (b_REDIS_connected)
                 {
-                    GO_RedisKeyValueWritter.GetComponent<RedisKeyWritter>()._redis_send_command("start_resting_state_" + i_resting_state_duration);
+                    GO_RedisKeyValueWritter.GetComponent<RedisKeyWritter>()._redis_send_command("resting_" + i_resting_state_duration);
                 }
             }
         }
@@ -297,8 +330,11 @@ public class _game_manager : _singleton<_game_manager>
             {
                 b_data_computed = false;
                 GO_text.GetComponent<Text>().color = new Color(255, 140, 0);
-                GO_text.GetComponent<Text>().text = "Raise Pat arms to start";
+                GO_text.GetComponent<Text>().text = "Raise the robots arms to start";
                 b_start_raising_hands = true;
+
+                _game_manager.Instance.GO_feedback_player_1.SetActive(true);
+                _game_manager.Instance.GO_feedback_player_2.SetActive(true);
             }
         }
         if (b_start_raising_hands)
@@ -331,9 +367,10 @@ public class _game_manager : _singleton<_game_manager>
     {
         _end_level(i_level);
         GO_text.GetComponent<Text>().color = Color.green;
-        GO_text.GetComponent<Text>().text = "Congratulation!";
+        GO_text.GetComponent<Text>().text = "Level ended!";
         yield return new WaitForSeconds(1);
-        GO_text.GetComponent<Text>().text = "";
+        GO_text.GetComponent<Text>().color = new Color(255, 140, 0);
+        GO_text.GetComponent<Text>().text = "Here we go again!";
         if (i_level < list_GO_levels.Count - 1)
         {
             _load_level_(i_level + 1);
@@ -348,7 +385,12 @@ public class _game_manager : _singleton<_game_manager>
             // TO ADD REDIS
             if (b_REDIS_connected)
             {
-                GO_RedisKeyValueWritter.GetComponent<RedisKeyWritter>()._redis_send_command("game_ended_stop");
+                GO_RedisKeyValueWritter.GetComponent<RedisKeyWritter>()._redis_send_command("EOF");
+            }
+
+            for (int i = 0; i < list_GO_players.Count; i++)
+            {
+                list_GO_players[i].GetComponent<Rigidbody>().AddForce((Camera.main.transform.position - list_GO_players[i].transform.position) * 100);
             }
         }
     }
@@ -369,6 +411,14 @@ public class _game_manager : _singleton<_game_manager>
         {
             GO_text.GetComponent<Text>().text = "Resting state - computing data";
             GO_text.GetComponent<Text>().color = new Color(255, 140, 0);
+        }
+    }
+
+    private void OnApplicationQuit()
+    {
+        if (b_REDIS_connected)
+        {
+            GO_RedisKeyValueWritter.GetComponent<RedisKeyWritter>()._redis_send_command("EOF");
         }
     }
 }

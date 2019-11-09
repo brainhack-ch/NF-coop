@@ -62,6 +62,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\_models\_asteroids\_rotate_over_time.cs" />
+    <Compile Include="Assets\_scripts\_fill_bar.cs" />
     <Compile Include="Assets\_scripts\_game_manager.cs" />
     <Compile Include="Assets\_scripts\_logs_printer.cs" />
     <Compile Include="Assets\_scripts\_player_controller.cs" />
@@ -97,6 +99,7 @@
     <Compile Include="Assets\_scripts\_REDIS\TeamDev.Redis\StoreEntityTypesCache.cs" />
     <Compile Include="Assets\_scripts\_REDIS\ThrQueueRedisListen.cs" />
     <Compile Include="Assets\_scripts\_utils\_singleton.cs" />
+    <None Include="Assets\_models\mirror.shader" />
     <None Include="Assets\_models\Plant\Standard-2Sided.shader" />
     <None Include="Assets\_scripts\_REDIS\TeamDev.Redis\ClassDiagram1.cd" />
     <Reference Include="Unity.Timeline.Editor">

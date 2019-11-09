@@ -9,7 +9,7 @@ public class ThrQueueRedisListen : MonoBehaviour
 {
     private RedisDataAccessProvider redis;
     public string LastValueReceived;
-    public int UNIXTimestamp;
+    public double UNIXTimestamp;
     public int State;
     public float valueRead;
     public string REDISListName= "mylist";
@@ -26,7 +26,7 @@ public class ThrQueueRedisListen : MonoBehaviour
         try
         {
             redis = new RedisDataAccessProvider();
-            redis.Configuration.Host = "192.168.99.100";
+            redis.Configuration.Host = "192.168.36.92";
             redis.Configuration.Port = 6379;
             redis.Connect();
       
@@ -132,7 +132,7 @@ public class ThrQueueRedisListen : MonoBehaviour
             string csvStr = csvStrP.Remove( csvStrP.Length-1 ,1);
 
             string[] lineData = (csvStr.Trim()).Split(","[0]);
-            int.TryParse(lineData[0], out UNIXTimestamp);
+            double.TryParse(lineData[0], out UNIXTimestamp);
             int.TryParse(lineData[1], out State);
             float.TryParse(lineData[2], out valueRead);
         }

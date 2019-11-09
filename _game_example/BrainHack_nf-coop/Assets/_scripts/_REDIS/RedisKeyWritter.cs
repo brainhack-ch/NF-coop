@@ -17,9 +17,13 @@ public class RedisKeyWritter : MonoBehaviour
         try
         {
             redis = new RedisDataAccessProvider();
-            redis.Configuration.Host = "192.168.99.100";
+            redis.Configuration.Host = "192.168.36.92";
             redis.Configuration.Port = 6379;
             redis.Connect();
+
+            _game_manager.Instance.GetComponent<_game_manager>().b_REDIS_connected = true;
+
+            _game_manager.Instance.GO_RedisKeyValueWritter.GetComponent<RedisKeyWritter>()._redis_send_EOF_command();
         }
         catch (Exception e)
         {
@@ -30,6 +34,11 @@ public class RedisKeyWritter : MonoBehaviour
     public void _redis_send_command(string s_value)
     {
         redis.SendCommand(RedisCommand.SET, Key, s_value);
+    }
+
+    public void _redis_send_EOF_command()
+    {
+        redis.SendCommand(RedisCommand.DEL, Key);
     }
 
 }
