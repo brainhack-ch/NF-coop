@@ -1,22 +1,31 @@
 import redis
+import time
+import threading
 
-REDIS_HOST = "localhost"
+REDIS_HOST = "192.168.36.92"
 REDIS_PORT = 6379
 
-QUEUE_NAME = 'input'
+SERVER_KEY_NAME = 'KeyfromUnity'
 
 # Utility functions around pushing data into Redis
 class RedisClient:
 
     connection = None
-    next_buffer = None
-    known_player_ids = []
+    event_thread = None
+    queue_name = ''
+    state_callback = None
+    shutdown_requested = False
+    last_server_event = -1
 
-    def __init__(self):
-        self.reset_buffer()
+    def __init__(self, headsetname):
+        self.queue_name = self.map_demo_headset_name_to_queue(headsetname)
 
     def shutdown(self):
+        self.shutdown_requested = True
         self.connection.close()
+
+    def setup_callback(self, requested_state_changed_callback):
+        self.state_callback = requested_state_changed_callback
 
     def setup_connection(self):
         print('[*] Connecting to Redis instance...')
@@ -28,48 +37,46 @@ class RedisClient:
             print('[!] Failed to connect to Redis instance!')
             return -1
 
+        # Start polling for server events
+        # Spawn listening loop as a thread for process response
+        self.event_thread = threading.Thread(target=self.event_thread_fn)
+        self.event_thread.daemon = True
+        self.event_thread.start()
+
         return 0
 
-    # Assumes two player IDs
-    def reset_buffer(self):
-        self.next_buffer = [-1, -1]
-
-    # Indexes any given player ID to an internal tuple index
-    def index_for_player(self, playerid):
-        if playerid in self.known_player_ids:
-            return self.known_player_ids.index(playerid)
+    def map_demo_headset_name_to_queue(self, name):
+        if name == 'WS-default':
+            return 'player_0'
+        elif name == 'unknown2':
+            return 'player_1'
         else:
-            self.known_player_ids.append(playerid)
-            return len(self.known_player_ids) - 1
+            return ''
 
-    def buffer_filled(self):
-        is_missing = False
+    def push_data(self, datapoint):
+        # Format:
+        # ( timestamp, state, value )
+        # state is [0|1]; 0 == resting, 1 == gaming
+        # value is [0,1]
+        formattedPoint = '(' + str(int(time.time() * 1000)) + ',' + '1' + ',' + str(datapoint) + ')'
+        print('[*] Pushing ' + formattedPoint + ' to list: ' + self.queue_name)
 
-        for item in self.next_buffer:
-            if item == -1:
-                is_missing = True
-                break
-
-        return is_missing == False
-
-    def stringify_buffer(self):
-        output = ''
-        for i in range(len(self.next_buffer)):
-            output = output + (',' if i > 0 else '') + self.next_buffer[i]
-
-        return output
-
-    def push_data(self, player, datapoint):
-        index = self.index_for_player(player)
-        if self.next_buffer[index] > -1:
-            print('[!] WARNING: Player ' + player + ' already has pending data in the next buffer')
-
-        self.next_buffer[index] = datapoint
-
-        if self.buffer_filled():
-            self.connection.rpush(QUEUE_NAME, self.stringify_buffer())
-            self.reset_buffer()
+        self.connection.rpush(self.queue_name, formattedPoint)
 
     # Called by signal processing wrapper on stdout messages
     def on_new_data(self, stream_update):
-        self.push_data(stream_update[0], stream_update[1])
+        self.push_data(stream_update)
+
+    def event_thread_fn(self):
+        print('[*] Starting server event thread')
+
+        while self.shutdown_requested == False:
+            server_event = self.connection.get(SERVER_KEY_NAME)
+
+            if server_event != None and int(server_event) != self.last_server_event:
+                self.state_callback(int(server_event))
+                self.last_server_event = int(server_event)
+
+            time.sleep(1)
+
+        print('[*] Cleaning up server event thread')

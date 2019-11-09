@@ -1,4 +1,3 @@
-
-[submodule "deps/neurodecode"]
-	path = deps/neurodecode
-	url = https://github.com/dbdq/neurodecode.git
+[submodule "_communication/deps/NeuroDecode"]
+	path = _communication/deps/NeuroDecode
+	url = https://github.com/fcbg-hnp/NeuroDecode.git

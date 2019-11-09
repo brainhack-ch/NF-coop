@@ -8,7 +8,7 @@ public class _game_manager : _singleton<_game_manager>
     protected _game_manager() { }
 
     [Header("Parameters")]
-    public int i_resting_state_duration = 30;
+    public int i_resting_state_duration = 5;
 
     [Header("Useless")]
     [HideInInspector]
@@ -31,9 +31,12 @@ public class _game_manager : _singleton<_game_manager>
     public int i_current_level;
 
 
-    GameObject GO_obj_level_0;
-    GameObject GO_obj_level_1;
-    GameObject GO_obj_level_2;
+    GameObject GO_obj_level_0_0;
+    GameObject GO_obj_level_0_0_1;
+    GameObject GO_obj_level_0_0_2;
+    List<GameObject> GO_obj_level_0_other_props = new List<GameObject>();
+
+
     [HideInInspector]
     public GameObject GO_text;
 
@@ -46,9 +49,15 @@ public class _game_manager : _singleton<_game_manager>
         GO_RedisListenerList1 = GameObject.Find("_REDIS_communication/GO_RedisListenerList1");
         GO_RedisListenerList2 = GameObject.Find("_REDIS_communication/GO_RedisListenerList2");
 
-        GO_obj_level_0 = GameObject.Find(s_path_GO_levels + "/" + s_path_GO_level_x + "0" + "/_objects").transform.GetChild(0).gameObject;
-        GO_obj_level_1 = GameObject.Find(s_path_GO_levels + "/" + s_path_GO_level_x + "0" + "/_objects").transform.GetChild(1).gameObject;
-        GO_obj_level_2 = GameObject.Find(s_path_GO_levels + "/" + s_path_GO_level_x + "0" + "/_objects").transform.GetChild(2).gameObject;
+        GO_obj_level_0_0 = GameObject.Find(s_path_GO_levels + "/" + s_path_GO_level_x + "0" + "/_objects").transform.GetChild(0).gameObject;
+        GO_obj_level_0_0_1 = GameObject.Find(s_path_GO_levels + "/" + s_path_GO_level_x + "0" + "/_objects").transform.GetChild(1).gameObject;
+        GO_obj_level_0_0_2 = GameObject.Find(s_path_GO_levels + "/" + s_path_GO_level_x + "0" + "/_objects").transform.GetChild(2).gameObject;
+
+        GO_obj_level_0_other_props = new List<GameObject>();
+        for (int i = 0; i < GameObject.Find(s_path_GO_levels + "/" + s_path_GO_level_x + "0" + "/_other_props").transform.childCount; i++)
+        {
+            GO_obj_level_0_other_props.Add(GameObject.Find(s_path_GO_levels + "/" + s_path_GO_level_x + "0" + "/_other_props").transform.GetChild(i).gameObject);
+        }
 
         // level management
         for (int i = 0; i < GameObject.Find(s_path_GO_levels).transform.childCount; i++)
@@ -91,9 +100,14 @@ public class _game_manager : _singleton<_game_manager>
                 list_GO_players[i].GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
                 list_GO_players[i].GetComponent<Rigidbody>().constraints = RigidbodyConstraints .FreezePosition;
 
-                GO_obj_level_0.SetActive(true);
-                GO_obj_level_1.SetActive(true);
-                GO_obj_level_2.SetActive(true);
+                GO_obj_level_0_0.SetActive(true);
+                GO_obj_level_0_0_1.SetActive(true);
+                GO_obj_level_0_0_2.SetActive(true);
+
+                for (int j = 0; j < GO_obj_level_0_other_props.Count; j++)
+                {
+                    GO_obj_level_0_other_props[i].SetActive(true);
+                }
 
                 load_level_0_a();
             }
@@ -114,7 +128,8 @@ public class _game_manager : _singleton<_game_manager>
 
     [HideInInspector]
     public bool b_start_record_resting_state;
-    [HideInInspector]
+    //[HideInInspector]
+    public bool b_REDIS_connected;
     public bool b_data_computed;
     [HideInInspector]
     public bool b_start_raising_hands;
@@ -133,19 +148,25 @@ public class _game_manager : _singleton<_game_manager>
         yield return new WaitForSeconds(1);
         GO_text.GetComponent<Text>().text = "";
 
-        yield return new WaitForSeconds(1);
-        GO_obj_level_0.SetActive(false);
+        for (int i = 0; i < GO_obj_level_0_other_props.Count; i++)
+        {
+            yield return new WaitForSeconds(1.0f / (1 + i / 2));
+            GO_obj_level_0_other_props[i].SetActive(false);
+        }
+
+        yield return new WaitForSeconds(1.0f / (1 + GO_obj_level_0_other_props.Count / 2));
+        GO_obj_level_0_0.SetActive(false);
         GO_text.GetComponent<Text>().text = "3";
         GO_text.GetComponent<Text>().color = new Color(255, 140, 0);
-        yield return new WaitForSeconds(0.5f);
-        GO_obj_level_1.SetActive(false);
+        yield return new WaitForSeconds(1.0f / (1 + GO_obj_level_0_other_props.Count / 2));
+        GO_obj_level_0_0_1.SetActive(false);
         GO_text.GetComponent<Text>().text = "2";
         GO_text.GetComponent<Text>().color = new Color(255, 140, 0);
-        yield return new WaitForSeconds(0.5f);
-        GO_obj_level_2.SetActive(false);
+        yield return new WaitForSeconds(1.0f / (1 + GO_obj_level_0_other_props.Count / 2));
+        GO_obj_level_0_0_2.SetActive(false);
         GO_text.GetComponent<Text>().text = "1";
         GO_text.GetComponent<Text>().color = new Color(255, 140, 0);
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(0.5f);
         GO_text.GetComponent<Text>().text = "GO!";
         GO_text.GetComponent<Text>().color = Color.green;
 
@@ -252,7 +273,11 @@ public class _game_manager : _singleton<_game_manager>
                 StartCoroutine(coroutine_record_resting_state(i_resting_state_duration)); // TO DO CHANGE
                 // TODO
                 // Send message to start recording of resting state
-                GO_RedisKeyValueWritter.GetComponent<RedisKeyWritter>()._redis_send_command("start_resting_state_" + i_resting_state_duration);
+                // TO ADD REDIS
+                if (b_REDIS_connected)
+                {
+                    GO_RedisKeyValueWritter.GetComponent<RedisKeyWritter>()._redis_send_command("start_resting_state_" + i_resting_state_duration);
+                }
             }
         }
 
@@ -260,9 +285,12 @@ public class _game_manager : _singleton<_game_manager>
         {
             // TODO
             // If receive message resting state computation ended - start broadcasting rt alpha computed value
-            if (GO_RedisListenerList1.GetComponent<ThrQueueRedisListen>().State == 1 && GO_RedisListenerList2.GetComponent<ThrQueueRedisListen>().State == 1)
+            if (b_REDIS_connected)
             {
-                b_data_computed = true;
+                if (GO_RedisListenerList1.GetComponent<ThrQueueRedisListen>().State == 1 && GO_RedisListenerList2.GetComponent<ThrQueueRedisListen>().State == 1)
+                {
+                    b_data_computed = true;
+                }
             }
 
             if (b_data_computed)
@@ -306,7 +334,7 @@ public class _game_manager : _singleton<_game_manager>
         GO_text.GetComponent<Text>().text = "Congratulation!";
         yield return new WaitForSeconds(1);
         GO_text.GetComponent<Text>().text = "";
-        if (i_level < list_GO_levels.Count)
+        if (i_level < list_GO_levels.Count - 1)
         {
             _load_level_(i_level + 1);
         }
@@ -317,7 +345,11 @@ public class _game_manager : _singleton<_game_manager>
 
             // TODO
             // Send message to stop sending data
-            GO_RedisKeyValueWritter.GetComponent<RedisKeyWritter>()._redis_send_command("game_ended_stop");
+            // TO ADD REDIS
+            if (b_REDIS_connected)
+            {
+                GO_RedisKeyValueWritter.GetComponent<RedisKeyWritter>()._redis_send_command("game_ended_stop");
+            }
         }
     }
 

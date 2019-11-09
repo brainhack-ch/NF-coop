@@ -1,16 +1,20 @@
-import subprocess, threading, Queue
+import threading
 import os
 import sys
 
-SIGNAL_PROCESSING_SCRIPT_LOCATION = "/mockdata.py"
+# Do file relative import
+relativeDirectory = os.path.dirname(os.path.abspath(__file__)) + '/../../signal_processing'
+sys.path.append(relativeDirectory)
+
+from brainHack_receiver import client, switch_paradigm
 
 class SignalProcessingWrapper:
 
     delegate = None
-    subprocess = None
+    client_thread = None
 
     # Constructor
-    # @params delegate The objetc to notify when new data becomes available
+    # @params delegate The object to notify when new data becomes available
     def __init__(self, delegate):
         self.delegate = delegate
 
@@ -18,52 +22,42 @@ class SignalProcessingWrapper:
         self.delegate.on_new_data(stream_update)
 
     def alive(self):
-        return self.subprocess.poll() is None
+        return self.client_thread.isAlive()
 
-    def spawn_processing(self):
-        # Assuming that the signal processing is a self-contained script that
-        # writes to stdout
-
-        ownLocation = sys.path[0] + '/'
-        path = ownLocation + SIGNAL_PROCESSING_SCRIPT_LOCATION
-
-        print('[*] Starting signal processing subprocess at: ' + path)
-
-        if not os.path.isfile(path):
-            print('[!] Cannot find subprocess for signal processing')
-            return
-
-        try:
-            self.subprocess = subprocess.Popen(["python", path],
-                stdout=subprocess.PIPE,
-                bufsize=-1,
-                universal_newlines=False)
-        except:
-            print('[!] Failed to initialise subprocess for signal processing')
-            return
-
+    def spawn_client(self, headsetname):
         # Spawn listening loop as a thread for process response
-        self.output_thread = threading.Thread(target=self.recv_thread)
-        self.output_thread.daemon=True
-        self.output_thread.start()
+        self.client_thread = threading.Thread(target=self.client_thread_fn, args=(headsetname,))
+        self.client_thread.daemon = True
+        self.client_thread.start()
 
-    def spawn_processing_calibration(self):
-        pass
+    def notify_state_requested(self, newState):
+        if newState == 0:
+            print('[*] Server event: start resting state')
+            self.start_resting_state()
+        elif newState == 1:
+            print('[*] Server event: stop')
+            self.stop_client()
+        else:
+            print('[!] Error: Unknown state requested by the server')
 
-    def recv_thread(self):
-        while self.subprocess.poll() is None:
-            out = self.subprocess.stdout.readline()
+    def start_resting_state(self):
+        # Switch to the resting state mode
+        switch_paradigm('resting_state')
 
-            if not out:
-                continue
+    def stop_client(self):
+        # Switch to the default mode
+        switch_paradigm('')
 
-            # Parse and emit
-            self.emit_data(self.parse_subprocess_line(out.rstrip()))
+    def on_new_score(self, score):
+        self.emit_data(score)
 
-        print('[*] Cleaning up subprocess')
-        self.subprocess.stdout.close()
+    def on_resting_state_callback(self, state):
+        # Start emitting real data up to redis
+        switch_paradigm('gaming')
 
-    def parse_subprocess_line(self, line):
-        # Assuming format is:
-        # playerId,val
-        return line.split(',')
+    def client_thread_fn(self, headsetname):
+        print('[*] Starting client thread')
+
+        client(headsetname, self.on_resting_state_callback, self.on_new_score)
+
+        print('[*] Cleaning up client thread')

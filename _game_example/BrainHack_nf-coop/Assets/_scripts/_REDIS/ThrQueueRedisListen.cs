@@ -25,10 +25,10 @@ public class ThrQueueRedisListen : MonoBehaviour
     {
         try
         {
-        redis = new RedisDataAccessProvider();
-        redis.Configuration.Host = "192.168.99.100";
-        redis.Configuration.Port = 6379;
-        redis.Connect();
+            redis = new RedisDataAccessProvider();
+            redis.Configuration.Host = "192.168.99.100";
+            redis.Configuration.Port = 6379;
+            redis.Connect();
       
             receiveThread = new Thread(new ThreadStart(ReceiveData));
             receiveThread.IsBackground = true;
