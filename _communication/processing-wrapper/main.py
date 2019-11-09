@@ -16,17 +16,25 @@ DEBUG_MODE = 1
 def signal_handler(sig, frame):
     do_exit = True
 
-def search_headsets():
+def choose_headset():
     streamInfos = pylsl.resolve_streams()
-    for si in streamInfos:
+    for i in range(len(streamInfos)):
+        si = streamInfos[i]
         if si.name() != 'StreamRecorderInfo':
-            print('Headset: ' + si.name())
+            print('[' + str(i + 1) + '] Headset: ' + si.name())
+
+    print('Choose headset to use (e.g. 1):')
+    userInput = input().strip()
+
+    headset = streamInfos[int(userInput) - 1]
+
+    return headset.name()
 
 def main():
     global do_exit
 
-    # Get headset name - initially as argv[2]
-    headsetname = sys.argv[2]
+    # Get headset name
+    headsetname = choose_headset()
 
     redisClient = RedisClient(headsetname)
     signalProcessor = SignalProcessingWrapper(redisClient)
@@ -58,12 +66,4 @@ def main():
     redisClient.shutdown()
 
 if __name__ == "__main__":
-    # Check args
-    if len(sys.argv) == 2 and sys.argv[1] == '--search':
-        search_headsets()
-    elif len(sys.argv) == 3:
-        main()
-    else:
-        print('Usage:')
-        print('--search\tQuery the list of EEG headsets on the local network')
-        print('-h <name>\tSpecify the name of the headset to use')
+    main()
