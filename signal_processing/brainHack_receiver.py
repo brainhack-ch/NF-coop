@@ -154,4 +154,7 @@ def client(headsetname, resting_duration, resting_callback, gaming_callback):
             rs_std = None
 
 if __name__ == '__main__':
-    client(None, None, None)
+    paradigm = 'demo'
+
+    # Adjust headset name here
+    client('P04', 0.5, None, None)
