@@ -1,4 +1,4 @@
-import subprocess, threading
+import threading
 import os
 import sys
 
@@ -26,11 +26,13 @@ class SignalProcessingWrapper:
 
     def spawn_client(self, headsetname):
         # Spawn listening loop as a thread for process response
-        self.client_thread = threading.Thread(target=self.client_thread, args=(headsetname,))
-        self.client_thread.daemon=True
+        self.client_thread = threading.Thread(target=self.client_thread_fn, args=(headsetname,))
+        self.client_thread.daemon = True
         self.client_thread.start()
 
     def notify_state_requested(self, newState):
+        print('[!] NOTIFIED OF SERVER STATE: ' + str(newState))
+
         if newState == 0:
             self.start_resting_state()
         elif newState == 1:
@@ -53,7 +55,7 @@ class SignalProcessingWrapper:
         # Start emitting real data up to redis
         switch_paradigm('gaming')
 
-    def client_thread(self, headsetname):
+    def client_thread_fn(self, headsetname):
         print('[*] Starting client thread')
 
         client(headsetname, self.on_resting_state_callback, self.on_new_score)
