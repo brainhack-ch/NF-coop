@@ -12,7 +12,7 @@ import pylsl
 
 do_exit = False
 
-DEBUG_MODE = 1
+DEBUG_MODE = 0
 
 def signal_handler(sig, frame):
     do_exit = True
