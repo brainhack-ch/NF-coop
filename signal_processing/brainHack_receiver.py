@@ -77,7 +77,7 @@ def switch_paradigm(value):
     global paradigm
     paradigm = value
 
-def client(headsetname, resting_callback, gaming_callback):
+def client(headsetname, resting_duration, resting_callback, gaming_callback):
     global paradigm
 
     # Connect to redis
@@ -112,7 +112,7 @@ def client(headsetname, resting_callback, gaming_callback):
     #do the stuff
     while True:
         # Wait instruction from redis
-        duration = 1
+        duration = resting_duration
         if paradigm == 'resting_state':
             print('resting_state')
             rs_mean, rs_std = do_resting_state_processing(sr, duration,

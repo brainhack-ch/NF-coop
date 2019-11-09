@@ -6,6 +6,7 @@ from redisclient import RedisClient
 import signal
 import sys
 import time
+import argparse
 
 import pylsl
 
@@ -18,6 +19,11 @@ def signal_handler(sig, frame):
 
 def choose_headset():
     streamInfos = pylsl.resolve_streams()
+
+    if (len(streamInfos) == 0):
+        print('[!] Cannot find any headsets streaming EEG data')
+        sys.exit(0)
+
     for i in range(len(streamInfos)):
         si = streamInfos[i]
         if si.name() != 'StreamRecorderInfo':
@@ -33,8 +39,15 @@ def choose_headset():
 def main():
     global do_exit
 
+    # Setup argument parsing
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--d', type=float, default=0.5, help='Duration for resting state')
+
+    args = parser.parse_args()
+
     # Get headset name
     headsetname = choose_headset()
+    resting_duration = args.d
 
     redisClient = RedisClient(headsetname)
     signalProcessor = SignalProcessingWrapper(redisClient)
@@ -52,7 +65,7 @@ def main():
         start_time = time.time()
         last_mode = -1
 
-        signalProcessor.spawn_client(headsetname)
+        signalProcessor.spawn_client(headsetname, resting_duration)
         while signalProcessor.alive() and not do_exit:
             time.sleep(1)
 

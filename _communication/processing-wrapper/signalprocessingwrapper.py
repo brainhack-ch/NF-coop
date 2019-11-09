@@ -24,9 +24,9 @@ class SignalProcessingWrapper:
     def alive(self):
         return self.client_thread.isAlive()
 
-    def spawn_client(self, headsetname):
+    def spawn_client(self, headsetname, resting_duration):
         # Spawn listening loop as a thread for process response
-        self.client_thread = threading.Thread(target=self.client_thread_fn, args=(headsetname,))
+        self.client_thread = threading.Thread(target=self.client_thread_fn, args=(headsetname,resting_duration,))
         self.client_thread.daemon = True
         self.client_thread.start()
 
@@ -55,9 +55,9 @@ class SignalProcessingWrapper:
         # Start emitting real data up to redis
         switch_paradigm('gaming')
 
-    def client_thread_fn(self, headsetname):
+    def client_thread_fn(self, headsetname, resting_duration):
         print('[*] Starting client thread')
 
-        client(headsetname, self.on_resting_state_callback, self.on_new_score)
+        client(headsetname, resting_duration, self.on_resting_state_callback, self.on_new_score)
 
         print('[*] Cleaning up client thread')
