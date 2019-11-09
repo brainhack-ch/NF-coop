@@ -2,7 +2,7 @@ import redis
 import time
 import threading
 
-REDIS_HOST = "localhost"
+REDIS_HOST = "192.168.36.92"
 REDIS_PORT = 6379
 
 SERVER_KEY_NAME = 'KeyfromUnity'
@@ -14,14 +14,14 @@ class RedisClient:
     event_thread = None
     queue_name = ''
     state_callback = None
-    shutdown = False
+    shutdown_requested = False
     last_server_event = -1
 
     def __init__(self, headsetname):
         self.queue_name = self.map_demo_headset_name_to_queue(headsetname)
 
     def shutdown(self):
-        self.shutdown = True
+        self.shutdown_requested = True
         self.connection.close()
 
     def setup_callback(self, requested_state_changed_callback):
@@ -58,7 +58,7 @@ class RedisClient:
         # ( timestamp, state, value )
         # state is [0|1]; 0 == resting, 1 == gaming
         # value is [0,1]
-        formattedPoint = '(' + int(time.time()) + ',' + '1' + ',' + str(datapoint) + ')'
+        formattedPoint = '(' + str(int(time.time() * 1000)) + ',' + '1' + ',' + str(datapoint) + ')'
         print('[*] Pushing ' + formattedPoint)
 
         self.connection.rpush(self.queue_name, formattedPoint)
@@ -70,7 +70,7 @@ class RedisClient:
     def event_thread_fn(self):
         print('[*] Starting server event thread')
 
-        while self.shutdown == False:
+        while self.shutdown_requested == False:
             server_event = self.connection.get(SERVER_KEY_NAME)
             if server_event != None and int(server_event) != self.last_server_event:
                 self.state_callback(int(server_event))

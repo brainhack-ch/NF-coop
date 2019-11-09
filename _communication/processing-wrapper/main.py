@@ -11,6 +11,8 @@ import pylsl
 
 do_exit = False
 
+DEBUG_MODE = 1
+
 def signal_handler(sig, frame):
     do_exit = True
 
@@ -39,9 +41,17 @@ def main():
 
     # Run underlying signal processing
     try:
+        start_time = time.time()
+        last_mode = -1
+
         signalProcessor.spawn_client(headsetname)
         while signalProcessor.alive() and not do_exit:
             time.sleep(1)
+
+            if DEBUG_MODE and time.time() - start_time > 5 and last_mode == -1:
+                print('[*] Going to resting state calibration, then auto-switch to gaming')
+                signalProcessor.notify_state_requested(0)
+                last_mode = 0
     except KeyboardInterrupt:
         pass
 
