@@ -31,14 +31,14 @@ class SignalProcessingWrapper:
         self.client_thread.start()
 
     def notify_state_requested(self, newState):
-        print('[!] NOTIFIED OF SERVER STATE: ' + str(newState))
-
         if newState == 0:
+            print('[*] Server event: start resting state')
             self.start_resting_state()
         elif newState == 1:
+            print('[*] Server event: stop')
             self.stop_client()
         else:
-            print('[!] Error: UNKNOWN STATE REQUESTED BY SERVER')
+            print('[!] Error: Unknown state requested by the server')
 
     def start_resting_state(self):
         # Switch to the resting state mode

@@ -49,7 +49,7 @@ def main():
             time.sleep(1)
 
             if DEBUG_MODE and time.time() - start_time > 5 and last_mode == -1:
-                print('[*] Going to resting state calibration, then auto-switch to gaming')
+                print('[*] DEBUG MODE: Going to resting state calibration, then auto-switch to gaming')
                 signalProcessor.notify_state_requested(0)
                 last_mode = 0
     except KeyboardInterrupt:

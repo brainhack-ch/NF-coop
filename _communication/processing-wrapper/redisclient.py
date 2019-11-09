@@ -46,7 +46,7 @@ class RedisClient:
         return 0
 
     def map_demo_headset_name_to_queue(self, name):
-        if name == 'P04-NF-default':
+        if name == 'WS-default':
             return 'player_0'
         elif name == 'unknown2':
             return 'player_1'
@@ -59,7 +59,7 @@ class RedisClient:
         # state is [0|1]; 0 == resting, 1 == gaming
         # value is [0,1]
         formattedPoint = '(' + str(int(time.time() * 1000)) + ',' + '1' + ',' + str(datapoint) + ')'
-        print('[*] Pushing ' + formattedPoint)
+        print('[*] Pushing ' + formattedPoint + ' to list: ' + self.queue_name)
 
         self.connection.rpush(self.queue_name, formattedPoint)
 
@@ -72,6 +72,7 @@ class RedisClient:
 
         while self.shutdown_requested == False:
             server_event = self.connection.get(SERVER_KEY_NAME)
+
             if server_event != None and int(server_event) != self.last_server_event:
                 self.state_callback(int(server_event))
                 self.last_server_event = int(server_event)
