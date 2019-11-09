@@ -75,8 +75,6 @@ class RedisClient:
             if server_event is not None:
                 server_event = server_event.decode("utf-8")
 
-            print(server_event)
-
             if server_event != self.last_server_event:
                 self.state_callback(server_event)
                 self.last_server_event = server_event

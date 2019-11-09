@@ -25,6 +25,12 @@ Data is sent to the server-side on a redis queue per player. This is in the form
 "(<unix-timestamp>, [0|1], <value>)", where the second parameter indicates whether the data is sent during
 a resting state (0) or gaming state (1).
 
+For the demo, the two headsets in use must have the following names:
+P04/01
+P04/02
+
+This is to allow mapping the data from headsets to the two streams Unity expects to receive.
+
 # Unity
 
 The Unity game sends back commands to clients by writing to a redis key with the following
