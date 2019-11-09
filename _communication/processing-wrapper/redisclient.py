@@ -46,7 +46,7 @@ class RedisClient:
         return 0
 
     def map_demo_headset_name_to_queue(self, name):
-        if name == 'unknown1':
+        if name == 'P04-NF-default':
             return 'player_0'
         elif name == 'unknown2':
             return 'player_1'
