@@ -13,9 +13,9 @@ TagManager:
   - UI
   - 
   - 
-  - Floor
-  - Shootable
-  - Blocking
+  - 
+  - 
+  - 
   - 
   - 
   - 
@@ -38,9 +38,6 @@ TagManager:
   - 
   - 
   m_SortingLayers:
-  - name: vfx
-    uniqueID: 1248102555
-    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0
